@@ -10,6 +10,14 @@
   "fmt": {
     "options": {
       "semiColons": false
+    },
+    "files": {
+      "exclude": ["node_modules", "dist"]
+    }
+  },
+  "lint": {
+    "files": {
+      "exclude": ["node_modules", "dist"]
     }
   }
 }

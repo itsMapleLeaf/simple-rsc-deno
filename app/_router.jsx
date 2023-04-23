@@ -1,5 +1,5 @@
 // @ts-expect-error Module '"react"' has no exported member 'use'.
-import { StrictMode, useEffect, useState, use, startTransition } from "react"
+import { startTransition, StrictMode, use, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import {
   /* FOR FRAMEWORK DEVS */ createFromFetch,

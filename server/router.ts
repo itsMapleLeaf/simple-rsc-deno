@@ -17,8 +17,7 @@ router.get("/rsc", async (ctx) => {
         // WARNING: can cause memory leaks for long-running dev servers!
         Deno.env.get("NODE_ENV") === "development"
           ? `?invalidate=${Date.now()}`
-          : ""
-      }`,
+          : ""}`,
     ).href
   )
 

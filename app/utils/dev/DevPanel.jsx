@@ -70,24 +70,22 @@ export function DevPanel({ url }) {
         {content.map(({ type, content, key }) => (
           <div
             key={key}
-            className={
-              "px-3 py-1 " +
+            className={"px-3 py-1 " +
               (type === "def"
                 ? "bg-blue-100"
                 : type === "client"
                 ? "bg-green-100"
-                : "bg-orange-200")
-            }
+                : "bg-orange-200")}
           >
-            {type === "def" ? (
-              <h3 className="font-bold text-blue-900">Definition</h3>
-            ) : null}
-            {type === "client" ? (
-              <h3 className="font-bold text-green-900">Client import</h3>
-            ) : null}
-            {type === "server" ? (
-              <h3 className="font-bold text-orange-900">Server stream</h3>
-            ) : null}
+            {type === "def"
+              ? <h3 className="font-bold text-blue-900">Definition</h3>
+              : null}
+            {type === "client"
+              ? <h3 className="font-bold text-green-900">Client import</h3>
+              : null}
+            {type === "server"
+              ? <h3 className="font-bold text-orange-900">Server stream</h3>
+              : null}
             <li style={{ listStyle: "none" }}>{content}</li>
           </div>
         ))}
