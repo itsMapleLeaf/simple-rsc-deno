@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react"
-import { nanoid } from "nanoid"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 /** @param {{ url: string }} props */
 export function DevPanel({ url }) {
@@ -45,7 +44,7 @@ export function DevPanel({ url }) {
             }
             setContent((state) => [
               ...state,
-              { type, content: segment, key: nanoid(4) },
+              { type, content: segment, key: crypto.randomUUID() },
             ])
           }
         }
