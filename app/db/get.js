@@ -1,6 +1,6 @@
-import bjorkPost from "./data/bjork-post.json"
-import ladyGagaTheFame from "./data/lady-gaga-the-fame.json"
-import glassAnimalsHowToBeAMHumanBeing from "./data/glass-animals-how-to-be.json"
+import bjorkPost from "./data/bjork-post.json" assert { type: "json" }
+import glassAnimalsHowToBeAMHumanBeing from "./data/glass-animals-how-to-be.json" assert { type: "json" }
+import ladyGagaTheFame from "./data/lady-gaga-the-fame.json" assert { type: "json" }
 
 /**
  * @typedef Song

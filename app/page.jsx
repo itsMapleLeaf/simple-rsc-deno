@@ -1,6 +1,6 @@
 import { Suspense } from "react"
+import SearchableAlbumList from "./SearchableAlbumList.jsx"
 import { getAll } from "./db/get.js"
-import SearchableAlbumList from "./SearchableAlbumList"
 
 /** @param {{ search: string }} props */
 export default async function ServerRoot({ search }) {

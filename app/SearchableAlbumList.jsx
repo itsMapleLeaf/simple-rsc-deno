@@ -1,6 +1,6 @@
-import SearchBox from "./SearchBox"
+import SearchBox from "./SearchBox.jsx"
 
-/** @param {{ albums: import('./db/get').Album[], search: string }} props */
+/** @param {{ albums: import('./db/get.js').Album[], search: string }} props */
 export default function SearchableAlbumList({ albums, search }) {
   const filteredAlbums = filterAlbums(albums, search ?? "")
   return (
@@ -19,7 +19,7 @@ export default function SearchableAlbumList({ albums, search }) {
 }
 
 /**
- * @param {import('./db/get').Album[]} albums
+ * @param {import('./db/get.js').Album[]} albums
  * @param {string} search
  */
 function filterAlbums(albums, search) {
