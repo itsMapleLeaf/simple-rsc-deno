@@ -174,7 +174,20 @@
     "https://deno.land/x/websocket@v0.1.4/deps.ts": "1299887e27e09209d2eedc5c3b6552090842fac9e08f00dd235de39219efbd42",
     "https://deno.land/x/websocket@v0.1.4/lib/errors.ts": "efb2251dac1ac2036809b0bfb520d737aee70e362eba1e287c84d5299fb211e8",
     "https://deno.land/x/websocket@v0.1.4/lib/websocket.ts": "3363e0a8f59284de5439f5f3bd8831b65a2cfba047113fbc72e32934ebec3208",
-    "https://deno.land/x/websocket@v0.1.4/mod.ts": "6b24e14dd1c5d64c1671dd678ca545cce9e2ebc91f67e8be864069808b948267"
+    "https://deno.land/x/websocket@v0.1.4/mod.ts": "6b24e14dd1c5d64c1671dd678ca545cce9e2ebc91f67e8be864069808b948267",
+    "https://esm.sh/react-server-dom-webpack@0.0.0-experimental-41b4714f1-20230328/server.browser": "f34dd7d2d4a379d2a5f3fd3c96c75f4650677b8ef1b685020bb480be91b82c15",
+    "https://esm.sh/react@18.3.0-next-3706edb81-20230308": "6d1d3e89b4fbc8c11f9f02b4f7d1dcb031d29b9a786563dfd37aa0c309525ca8",
+    "https://esm.sh/react@18.3.0-next-3706edb81-20230308/jsx-runtime": "74f879f0bd635215865fb99436597c8d7cab9855f6af9b75eb10423329e9336d",
+    "https://esm.sh/stable/react@0.0.0-experimental-41b4714f1-20230328/deno/react.mjs": "03b7e2e4bca3237797a305788e4c9300e454c9a3ec492a1901386558f8058072",
+    "https://esm.sh/stable/react@18.3.0-next-3706edb81-20230308/deno/jsx-runtime.js": "edd4edf7482fbd0ddd27895b11c9cd35e8144f1ce516abd435c13bf0f615509e",
+    "https://esm.sh/stable/react@18.3.0-next-3706edb81-20230308/deno/react.mjs": "4436b1c78f3fa53c0c7afc7caa45e16f51aeb56863779d1f322f0eb0fc7322d9",
+    "https://esm.sh/v117/@types/prop-types@15.7.5/index.d.ts": "6a386ff939f180ae8ef064699d8b7b6e62bc2731a62d7fbf5e02589383838dea",
+    "https://esm.sh/v117/@types/react@18.0.37/global.d.ts": "49a253ec027e56c55c7450a0c331cfe96212b3d1cc215b1710ba94a083404cf3",
+    "https://esm.sh/v117/@types/react@18.0.37/index.d.ts": "f901ba0415ae35c8f062758b2a849fe3aef2ce219323d2495114232c3afe9227",
+    "https://esm.sh/v117/@types/react@18.0.37/jsx-runtime~.d.ts": "7efb28f322f647d652575b99e1d9cda1af17e93bdf6f649cc5d0a8527fc75324",
+    "https://esm.sh/v117/@types/scheduler@0.16.3/tracing.d.ts": "f5a8b384f182b3851cec3596ccc96cb7464f8d3469f48c74bf2befb782a19de5",
+    "https://esm.sh/v117/csstype@3.1.2/index.d.ts": "4c68749a564a6facdf675416d75789ee5a557afda8960e0803cf6711fa569288",
+    "https://esm.sh/v117/react-server-dom-webpack@0.0.0-experimental-41b4714f1-20230328/deno/server.browser.js": "8dba899984092365ad00409648b512521b9f742e3da98c73e069194db244ae79"
   },
   "npm": {
     "specifiers": {
