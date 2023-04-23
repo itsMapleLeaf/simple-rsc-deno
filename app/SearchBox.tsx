@@ -1,13 +1,11 @@
 "use client"
 import { useTransition } from "react"
 
-/** @param {{ search: string }} props */
-export default function SearchBox({ search: initialSearch }) {
+export default function SearchBox(props: { search: string }) {
   const [isPending, startTransition] = useTransition()
 
-  function onChange(e) {
+  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
     startTransition(() => {
-      // @ts-expect-error Property 'router' does not exist on type 'Window & typeof globalThis'.
       window.router.navigate(`?search=${e.target.value}`)
     })
   }
@@ -16,7 +14,7 @@ export default function SearchBox({ search: initialSearch }) {
       <input
         className="border-2 border-slate-500"
         type="text"
-        defaultValue={initialSearch}
+        defaultValue={props.search}
         onChange={onChange}
       />
       <span

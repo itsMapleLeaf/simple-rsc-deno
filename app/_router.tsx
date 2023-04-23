@@ -1,32 +1,35 @@
 // @ts-expect-error Module '"react"' has no exported member 'use'.
 import { startTransition, StrictMode, use, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
-import {
-  /* FOR FRAMEWORK DEVS */ createFromFetch,
-} from "react-server-dom-webpack/client"
+import { createFromFetch } from "react-server-dom-webpack/client"
 
 /** Dev-only dependencies */
-import { DevPanel } from "./utils/dev/DevPanel.jsx"
-import "./utils/dev/live-reload.js"
+import { DevPanel } from "./utils/dev/DevPanel.tsx"
+import "./utils/dev/live-reload.ts"
 
 // HACK: map webpack resolution to native ESM
 // @ts-expect-error Property '__webpack_require__' does not exist on type 'Window & typeof globalThis'.
-window.__webpack_require__ = async (id) => {
-  return import(id)
-}
+window.__webpack_require__ = (id) => import(id)
 
-// @ts-expect-error
-const root = createRoot(document.getElementById("root"))
+const root = createRoot(document.getElementById("root")!)
 root.render(
   <StrictMode>
     <Router />
   </StrictMode>,
 )
 
-let callbacks = []
-// @ts-expect-error Property 'router' does not exist on type 'Window & typeof globalThis'.
+const callbacks: Array<() => void> = []
+
+declare global {
+  interface Window {
+    router: {
+      navigate(url: string): void
+    }
+  }
+}
+
 window.router = {
-  navigate(/** @type {string} */ url) {
+  navigate(url) {
     window.history.replaceState({}, "", url)
     callbacks.forEach((cb) => cb())
   },
@@ -42,10 +45,10 @@ function Router() {
       })
     }
     callbacks.push(handleNavigate)
-    window.addEventListener("popstate", handleNavigate)
+    self.addEventListener("popstate", handleNavigate)
     return () => {
       callbacks.splice(callbacks.indexOf(handleNavigate), 1)
-      window.removeEventListener("popstate", handleNavigate)
+      self.removeEventListener("popstate", handleNavigate)
     }
   }, [])
 
@@ -59,11 +62,12 @@ function Router() {
 
 const initialCache = new Map()
 
-function ServerOutput({ url }) {
-  const [cache, setCache] = useState(initialCache)
-  if (!cache.has(url)) {
-    cache.set(url, createFromFetch(fetch(url)))
+function ServerOutput({ url }: { url: string }) {
+  const [cache] = useState(initialCache)
+  let lazyJsx = cache.get(url)
+  if (!lazyJsx) {
+    lazyJsx = createFromFetch(fetch(url))
+    cache.set(url, lazyJsx)
   }
-  const lazyJsx = cache.get(url)
   return use(lazyJsx)
 }

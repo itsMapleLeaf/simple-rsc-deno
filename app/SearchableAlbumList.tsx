@@ -1,7 +1,9 @@
-import SearchBox from "./SearchBox.jsx"
+import SearchBox from "./SearchBox.tsx"
+import { Album } from "./db/get.ts"
 
-/** @param {{ albums: import('./db/get.js').Album[], search: string }} props */
-export default function SearchableAlbumList({ albums, search }) {
+export default function SearchableAlbumList(
+  { albums, search }: { albums: Album[]; search: string },
+) {
   const filteredAlbums = filterAlbums(albums, search ?? "")
   return (
     <>
@@ -18,11 +20,7 @@ export default function SearchableAlbumList({ albums, search }) {
   )
 }
 
-/**
- * @param {import('./db/get.js').Album[]} albums
- * @param {string} search
- */
-function filterAlbums(albums, search) {
+function filterAlbums(albums: Album[], search: string) {
   const keywords = search
     .toLowerCase()
     .split(" ")

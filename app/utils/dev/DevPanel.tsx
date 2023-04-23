@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
-/** @param {{ url: string }} props */
-export function DevPanel({ url }) {
-  /** @type {{ type: 'def' | 'client' | 'server', content: string, key: string }[]} */
-  const initialContent = []
+export function DevPanel({ url }: { url: string }) {
+  const initialContent: {
+    type: "def" | "client" | "server"
+    content: string
+    key: string
+  }[] = []
   const [content, setContent] = useState(initialContent)
 
   const { mouseMove, getResizeProps } = useWindowResize({
@@ -30,7 +32,7 @@ export function DevPanel({ url }) {
           const segments = decoded.trim().split("\n")
           for (const segment of segments) {
             /** @type {'server' | 'client' | 'def'} */
-            let type = "server"
+            let type: "server" | "client" | "def" = "server"
             if (/^\d+:"\$/.test(segment)) {
               // Heuristic: messages starting with a "$"
               // are probably definitions.
@@ -94,15 +96,13 @@ export function DevPanel({ url }) {
   )
 }
 
-/** @typedef {'vertical' | 'horizontal'} Direction */
+type Direction = "vertical" | "horizontal"
 
-const toLocalStorageKey = (/** @type {Direction} */ direction) =>
+const toLocalStorageKey = (direction: Direction) =>
   `simple-rfc-devtool-resize-${direction}`
 const DEFAULT_HEIGHT = 260
 
-/**
- * @param {{ direction: Direction }} */
-function useWindowResize({ direction }) {
+function useWindowResize({ direction }: { direction: Direction }) {
   const [mouseMove, setMouseMove] = useState(getInitialSize(direction))
   const [isMouseDown, setIsMouseDown] = useState(false)
   const ref = useRef(null)
@@ -116,7 +116,7 @@ function useWindowResize({ direction }) {
   }, [])
 
   const handleMouseMove = useCallback(
-    (event) => {
+    (event: MouseEvent) => {
       if (isMouseDown) {
         setMouseMove(direction === "vertical" ? event.pageY : event.pageX)
       }
@@ -132,14 +132,12 @@ function useWindowResize({ direction }) {
   }
 
   useEffect(() => {
-    let timeout
-
     if (isMouseDown) {
-      window.addEventListener("mousemove", handleMouseMove)
-      window.addEventListener("mouseup", handleMouseUp)
+      self.addEventListener("mousemove", handleMouseMove)
+      self.addEventListener("mouseup", handleMouseUp)
     }
 
-    timeout = setTimeout(
+    const timeout = setTimeout(
       () =>
         localStorage.setItem(
           toLocalStorageKey(direction),
@@ -149,8 +147,8 @@ function useWindowResize({ direction }) {
     )
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove)
-      window.removeEventListener("mouseup", handleMouseUp)
+      self.removeEventListener("mousemove", handleMouseMove)
+      self.removeEventListener("mouseup", handleMouseUp)
       clearTimeout(timeout)
     }
   }, [isMouseDown])
@@ -161,12 +159,11 @@ function useWindowResize({ direction }) {
   }
 }
 
-function getDevtoolHeight(mouseMove) {
+function getDevtoolHeight(mouseMove: number) {
   return `${window.innerHeight - mouseMove}px`
 }
 
-/** @param {Direction} direction */
-function getInitialSize(direction) {
+function getInitialSize(direction: Direction) {
   const { localStorage } = window ?? {}
   return Number(
     localStorage?.getItem(toLocalStorageKey(direction)) ?? DEFAULT_HEIGHT,
