@@ -2,6 +2,7 @@
   "deno.enable": true,
   "deno.unstable": true,
   "prettier.enable": false,
+  "eslint.enable": false,
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },

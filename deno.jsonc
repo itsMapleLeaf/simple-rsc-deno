@@ -25,12 +25,12 @@
       "semiColons": false
     },
     "files": {
-      "exclude": ["node_modules", "dist"]
+      "exclude": ["dist"]
     }
   },
   "lint": {
     "files": {
-      "exclude": ["node_modules", "dist"]
+      "exclude": ["dist"]
     }
   }
 }
