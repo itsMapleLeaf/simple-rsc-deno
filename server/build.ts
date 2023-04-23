@@ -31,6 +31,7 @@ export async function build() {
     bundle: true,
     format: "esm",
     logLevel: "error",
+    jsx: "automatic",
   }
 
   await esbuild.build({
@@ -53,10 +54,11 @@ export async function build() {
                 const contents = await Deno.readTextFile(absoluteSrc)
                 if (
                   !USE_CLIENT_ANNOTATIONS.some((annotation) =>
-                    contents.startsWith(annotation),
+                    contents.startsWith(annotation)
                   )
-                )
+                ) {
                   return
+                }
 
                 clientEntryPoints.add(toPathString(absoluteSrc))
 
@@ -79,9 +81,11 @@ export async function build() {
                 return {
                   // Encode the client component module in the import URL.
                   // This is a... wacky solution to avoid import middleware.
-                  path: `data:text/javascript,${encodeURIComponent(
-                    getClientComponentModule(id, absoluteDist.href),
-                  )}`,
+                  path: `data:text/javascript,${
+                    encodeURIComponent(
+                      getClientComponentModule(id, absoluteDist.href),
+                    )
+                  }`,
                   external: true,
                 }
               }
