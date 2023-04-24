@@ -1,8 +1,8 @@
 import { toPathString } from "https://deno.land/std@0.184.0/fs/_util.ts"
 import { exists } from "https://deno.land/std@0.184.0/fs/mod.ts"
-import {} from "https://deno.land/std@0.184.0/path/mod.ts"
 import * as esbuild from "https://deno.land/x/esbuild@v0.17.17/mod.js"
 import outdent from "https://deno.land/x/outdent@v0.8.0/mod.ts"
+import { denoPlugins } from "https://raw.githubusercontent.com/lucacasonato/esbuild_deno_loader/main/mod.ts"
 import {
   ClientComponentMap,
   resolveClientDist,
@@ -34,11 +34,23 @@ export async function build() {
     jsx: "automatic",
   }
 
+  const createDenoPlugins = (): esbuild.Plugin[] => [
+    // Hack around JSON loader overrides in esbuild_deno_loader that flag type
+    // assertions.
+    {
+      name: "json",
+      setup: (build) =>
+        build.onLoad({ filter: /\.json$/ }, () => ({ loader: "json" })),
+    },
+    ...denoPlugins({
+      configPath: toPathString(new URL("../deno.jsonc", import.meta.url)),
+    }),
+  ]
+
   await esbuild.build({
     ...sharedConfig,
-    entryPoints: [toPathString(resolveSrc("page.jsx"))],
+    entryPoints: [new URL("../app/page.tsx", import.meta.url).href],
     outdir: toPathString(serverDist),
-    packages: "external",
     plugins: [
       {
         name: "resolve-client-imports",
@@ -47,52 +59,53 @@ export async function build() {
           build.onResolve(
             { filter: relativeOrAbsolutePathRegex },
             async ({ path }) => {
-              const absoluteSrc = new URL(resolveSrc(path))
+              const absoluteSrc = resolveSrc(path)
 
-              if (await exists(absoluteSrc)) {
-                // Check for `"use client"` annotation. Short circuit if not found.
-                const contents = await Deno.readTextFile(absoluteSrc)
-                if (
-                  !USE_CLIENT_ANNOTATIONS.some((annotation) =>
-                    contents.startsWith(annotation)
+              const stats = await Deno.stat(absoluteSrc).catch(() => undefined)
+              if (!stats?.isFile) return
+
+              // Check for `"use client"` annotation. Short circuit if not found.
+              const contents = await Deno.readTextFile(absoluteSrc)
+                .then((text) => text.trim())
+
+              const isClientComponent = USE_CLIENT_ANNOTATIONS.some(
+                (annotation) => contents.startsWith(annotation),
+              )
+              if (!isClientComponent) return
+
+              clientEntryPoints.add(absoluteSrc.href)
+
+              const absoluteDist = new URL(
+                resolveClientDist(path).href.replace(/\.(j|t)sx?$/, ".js"),
+              )
+
+              // Path the browser will import this client-side component from.
+              // This will be fulfilled by the server router.
+              // @see './index.js'
+              const id = `/dist/client/${path.replace(/\.(j|t)sx?$/, ".js")}`
+
+              clientComponentMap[id] = {
+                id,
+                chunks: [],
+                name: "default", // TODO support named exports
+                async: true,
+              }
+
+              return {
+                // Encode the client component module in the import URL.
+                // This is a... wacky solution to avoid import middleware.
+                path: `data:text/javascript,${
+                  encodeURIComponent(
+                    getClientComponentModule(id, absoluteDist.href),
                   )
-                ) {
-                  return
-                }
-
-                clientEntryPoints.add(toPathString(absoluteSrc))
-
-                const absoluteDist = new URL(
-                  resolveClientDist(path).href.replace(/\.(j|t)sx?$/, ".js"),
-                )
-
-                // Path the browser will import this client-side component from.
-                // This will be fulfilled by the server router.
-                // @see './index.js'
-                const id = `/dist/client/${path.replace(/\.(j|t)sx?$/, ".js")}`
-
-                clientComponentMap[id] = {
-                  id,
-                  chunks: [],
-                  name: "default", // TODO support named exports
-                  async: true,
-                }
-
-                return {
-                  // Encode the client component module in the import URL.
-                  // This is a... wacky solution to avoid import middleware.
-                  path: `data:text/javascript,${
-                    encodeURIComponent(
-                      getClientComponentModule(id, absoluteDist.href),
-                    )
-                  }`,
-                  external: true,
-                }
+                }`,
+                external: true,
               }
             },
           )
         },
       },
+      ...createDenoPlugins(),
     ],
   })
 
@@ -107,9 +120,10 @@ export async function build() {
 
   await esbuild.build({
     ...sharedConfig,
+    plugins: [...createDenoPlugins()],
     entryPoints: [
+      new URL("../app/_router.tsx", import.meta.url).href,
       ...clientEntryPoints,
-      toPathString(resolveSrc("_router.jsx")),
     ],
     outdir: toPathString(clientDist),
     splitting: true,
