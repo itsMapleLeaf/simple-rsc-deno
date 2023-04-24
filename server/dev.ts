@@ -14,7 +14,6 @@ function startHttpServer() {
   const app = new Application().use(router.routes())
 
   app.addEventListener("listen", async () => {
-    await build()
     console.log(`⚛️ Future of React started on http://localhost:${port}`)
   })
 
@@ -53,4 +52,5 @@ async function startFileWatcher() {
   }
 }
 
+await build()
 await Promise.all([startHttpServer(), startSocketServer(), startFileWatcher()])
