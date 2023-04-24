@@ -23,7 +23,7 @@ export function Document({ children }: { children: React.ReactNode }) {
           name="viewport"
           content="width=device-width, initial-scale=1.0"
         />
-        <title>Document</title>
+        <title>AbraMix</title>
         <script
           type="importmap"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(importMap) }}
