@@ -39,6 +39,7 @@ const createDenoPlugins = (): esbuild.Plugin[] => [
  */
 export async function build() {
   await Deno.remove(new URL("../dist/", import.meta.url), { recursive: true })
+    .catch(() => {})
 
   const clientImportResolver = createClientImportResolver()
 
