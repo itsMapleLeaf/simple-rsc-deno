@@ -1,6 +1,8 @@
-# Simple RSC ⚛️
+# Simple RSC, Deno Edition 🦕
 
 > A simple React Server Components implementation that you can build yourself 🙌
+>
+> Converted from [Ben's original demo](https://github.com/bholmesdev/simple-rsc)
 
 [Watch the live demo with Dan Abramov here!](https://www.youtube.com/watch?v=Fctw7WjmxpU)
 
@@ -12,27 +14,22 @@
   Node server.
 - 📝 Reveal how a server component requests appear to the client with a robust
   developer panel.
+- 🦕 Make this work with Deno!
 
 ## Getting started
 
-First, install dependencies with "peer dependency" errors disabled:
+First, ensure you have Deno installed:
+https://deno.land/manual/getting_started/installation
+
+Then, run the dev task:
 
 ```bash
-npm i --legacy-peer-deps
-```
-
-_This is due to experimental version conflicts. React Server Components are
-still quite new!_
-
-Then, start the Node development server:
-
-```bash
-npm run dev
+deno task dev
 ```
 
 This should trigger a build and start your server at http://localhost:3000 👀
 
-Hint: Try editing the `app/page.jsx` file to see changes appear in your browser.
+Hint: Try editing the `app/page.tsx` file to see changes appear in your browser.
 
 ## Project structure
 
@@ -41,12 +38,12 @@ important entrypoints are listed below:
 
 ```sh
 app/ # 🥞 your full-stack application
-  page.jsx # server index route.
-  _router.jsx # client script that requests your `page.jsx`.
+  page.tsx # server index route.
+  _router.tsx # client script that requests your `page.tsx`.
 
 server/ # 💿 your backend that builds and renders the `app/`
-  index.js # server router for streaming React server components
-  build.js # bundler to process server and client components
+  router.ts # server router for streaming React server components
+  build.ts # bundler to process server and client components
 ```
 
 ## 🙋‍♀️ What is _not_ included?
