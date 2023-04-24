@@ -1,25 +1,16 @@
 import { toPathString } from "https://deno.land/std@0.184.0/fs/_util.ts"
 import { ensureDir } from "https://deno.land/std@0.184.0/fs/mod.ts"
+import * as path from "https://deno.land/std@0.184.0/path/mod.ts"
+import { createCache } from "https://deno.land/x/deno_cache@0.4.1/mod.ts"
+import { LoadResponseModule } from "https://deno.land/x/deno_graph@0.26.0/lib/types.d.ts"
 import * as esbuild from "https://deno.land/x/esbuild@v0.17.17/mod.js"
-import outdent from "https://deno.land/x/outdent@v0.8.0/mod.ts"
+import { parse } from "https://deno.land/x/swc@0.2.1/mod.ts"
 import { denoPlugins } from "https://raw.githubusercontent.com/lucacasonato/esbuild_deno_loader/main/mod.ts"
 import {
   ClientComponentMap,
-  resolveClientDist,
   resolveDist,
-  resolveSrc,
   writeClientComponentMap,
 } from "./utils.ts"
-
-const USE_CLIENT_ANNOTATIONS = ['"use client"', "'use client'"]
-const relativeOrAbsolutePathRegex = /^\.{0,2}\//
-
-const sharedConfig: esbuild.BuildOptions = {
-  bundle: true,
-  format: "esm",
-  logLevel: "error",
-  jsx: "automatic",
-}
 
 const createDenoPlugins = (): esbuild.Plugin[] => [
   // Hack around JSON loader overrides in esbuild_deno_loader that flag type
@@ -41,33 +32,24 @@ export async function build() {
   await Deno.remove(new URL("../dist/", import.meta.url), { recursive: true })
     .catch(() => {})
 
-  const clientImportResolver = createClientImportResolver()
+  console.log("🏝 Building client components")
 
-  console.log("💿 Building server components")
-
-  const serverDist = resolveDist("server/")
-  await ensureDir(serverDist)
-
-  await esbuild.build({
-    ...sharedConfig,
-    entryPoints: [new URL("../app/page.tsx", import.meta.url).href],
-    outdir: toPathString(serverDist),
-    plugins: [clientImportResolver.plugin, ...createDenoPlugins()],
-  })
-
-  if (clientImportResolver.entries.size > 0) {
-    console.log("🏝 Building client components")
-  }
+  const { clientEntries, componentMap } = await discoverClientComponents(
+    new URL("../app/page.tsx", import.meta.url),
+  )
 
   const clientDist = resolveDist("client/")
   await ensureDir(clientDist)
 
   await esbuild.build({
-    ...sharedConfig,
+    bundle: true,
+    format: "esm",
+    logLevel: "error",
+    jsx: "automatic",
     plugins: createDenoPlugins(),
     entryPoints: [
       new URL("../app/_router.tsx", import.meta.url).href,
-      ...clientImportResolver.entries,
+      ...clientEntries,
     ],
     outdir: toPathString(clientDist),
     splitting: true,
@@ -75,79 +57,120 @@ export async function build() {
 
   // Write mapping from client-side component ID to chunk
   // This is read by the server when generating the RSC stream.
-  await writeClientComponentMap(clientImportResolver.componentMap)
+  await writeClientComponentMap(componentMap)
 }
 
-function createClientImportResolver() {
+async function discoverClientComponents(entryUrl: URL) {
   const componentMap: ClientComponentMap = {}
-  const entries = new Set<string>()
+  const clientEntries = new Set<string>()
 
-  const plugin: esbuild.Plugin = {
-    name: "resolve-client-imports",
-    setup(build) {
-      // Intercept component imports to find client entry points
-      build.onResolve(
-        { filter: relativeOrAbsolutePathRegex },
-        async ({ path }) => {
-          const absoluteSrc = resolveSrc(path)
+  await walkModules(entryUrl, async (specifier) => {
+    const stats = await Deno.stat(specifier).catch(() => undefined)
+    if (!stats?.isFile) return
 
-          const stats = await Deno.stat(absoluteSrc).catch(() => undefined)
-          if (!stats?.isFile) return
+    // Check for `"use client"` annotation. Short circuit if not found.
+    const contents = await Deno.readTextFile(specifier)
 
-          // Check for `"use client"` annotation. Short circuit if not found.
-          const contents = await Deno.readTextFile(absoluteSrc)
-            .then((text) => text.trim())
+    let ast
+    try {
+      ast = parse(contents, {
+        syntax: "typescript",
+        tsx: true,
+      })
+    } catch (error) {
+      console.error(error)
+      throw new Error(`Failed to parse "${specifier}"`)
+    }
 
-          const isClientComponent = USE_CLIENT_ANNOTATIONS.some(
-            (annotation) => contents.startsWith(annotation),
-          )
-          if (!isClientComponent) return
+    const firstNode = ast.body[0]
+    const isClientComponent = firstNode.type === "ExpressionStatement" &&
+      firstNode.expression.type === "StringLiteral" &&
+      firstNode.expression.value === "use client"
+    if (!isClientComponent) return
 
-          entries.add(absoluteSrc.href)
+    clientEntries.add(specifier.href)
 
-          const absoluteDist = new URL(
-            resolveClientDist(path).href.replace(/\.(j|t)sx?$/, ".js"),
-          )
+    const parsed = path.posix.parse(specifier.pathname)
 
-          // Path the browser will import this client-side component from.
-          // This will be fulfilled by the server router.
-          // @see './index.js'
-          const id = `/dist/client/${path.replace(/\.(j|t)sx?$/, ".js")}`
+    const appRelativeDir = path.posix.relative(
+      new URL("../app/", import.meta.url).pathname,
+      parsed.dir,
+    )
 
-          componentMap[id] = {
-            id,
-            chunks: [],
-            name: "default", // TODO support named exports
-            async: true,
-          }
+    // Path the browser will import this client-side component from.
+    // This will be fulfilled by the server router.
+    // @see './index.js'
+    const id = path.posix.join(
+      `/dist/client`,
+      appRelativeDir,
+      `${parsed.name}.js`,
+    )
 
-          return {
-            // Encode the client component module in the import URL.
-            // This is a... wacky solution to avoid import middleware.
-            path: `data:text/javascript,${
-              encodeURIComponent(
-                getClientComponentModule(id, absoluteDist.href),
-              )
-            }`,
-            external: true,
-          }
-        },
-      )
-    },
+    componentMap[id] = {
+      id,
+      chunks: [],
+      name: "default", // TODO support named exports
+      async: true,
+    }
+  })
+
+  return { componentMap, clientEntries }
+}
+
+const cache = createCache()
+
+async function walkModules(
+  entryUrl: URL,
+  callback: (specifier: URL) => Promise<void>,
+) {
+  const response = await cache.load(import.meta.resolve(entryUrl.href))
+  if (response?.kind !== "module") {
+    throw new Error(`Entry point "${entryUrl.href}" is not a module`)
+  }
+  await walkModulesRecursive(response, callback, new Set())
+}
+
+async function walkModulesRecursive(
+  module: LoadResponseModule,
+  callback: (specifier: URL) => Promise<void>,
+  visited: Set<string>,
+) {
+  visited.add(module.specifier)
+  await callback(new URL(module.specifier))
+
+  let ast
+  try {
+    ast = parse(module.content, {
+      syntax: "typescript",
+      tsx: true,
+    })
+  } catch (error) {
+    console.error(error)
+    throw new Error(`Failed to parse "${module.specifier}"`)
   }
 
-  return { componentMap, entries, plugin }
+  // TODO: also handle dynamic imports
+  const importDeclarations = ast.body.flatMap(
+    (node) => node.type === "ImportDeclaration" ? [node] : [],
+  )
+
+  await Promise.all(
+    importDeclarations.map(async (declaration) => {
+      const specifier = import.meta.resolve(
+        new URL(declaration.source.value, module.specifier).href,
+      )
+
+      if (!isTypescriptSpecifier(specifier)) return
+      if (visited.has(specifier)) return
+
+      const response = await cache.load(specifier)
+      if (response?.kind === "module") {
+        await walkModulesRecursive(response, callback, visited)
+      }
+    }),
+  )
 }
 
-/**
- * Wrap a client-side module import with metadata
- * that tells React this is a client-side component.
- */
-function getClientComponentModule(id: string, localImportPath: string) {
-  return outdent`
-    import DefaultExport from ${JSON.stringify(localImportPath)};
-    DefaultExport.$$typeof = Symbol.for("react.client.reference");
-    DefaultExport.$$id=${JSON.stringify(id)};
-    export default DefaultExport;
-  `
+function isTypescriptSpecifier(specifier: string) {
+  return specifier.endsWith(".ts") || specifier.endsWith(".tsx")
 }

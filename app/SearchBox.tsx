@@ -30,3 +30,7 @@ export default function SearchBox(props: { search: string }) {
     </>
   )
 }
+
+// can we insert this at runtime?
+SearchBox.$$typeof = Symbol.for("react.client.reference")
+SearchBox.$$id = "/dist/client/SearchBox.js"

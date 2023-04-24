@@ -5,7 +5,7 @@ import {
   WebSocketServer,
 } from "https://deno.land/x/websocket@v0.1.4/mod.ts"
 import { build } from "./build.ts"
-import { router } from "./router.ts"
+import { router } from "./router.tsx"
 import { src } from "./utils.ts"
 
 Deno.env.set("NODE_ENV", "development")
