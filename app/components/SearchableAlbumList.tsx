@@ -1,5 +1,5 @@
+import { Album } from "../db/get.ts"
 import SearchBox from "./SearchBox.tsx"
-import { Album } from "./db/get.ts"
 
 export default function SearchableAlbumList(
   { albums, search }: { albums: Album[]; search: string },

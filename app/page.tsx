@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import SearchableAlbumList from "./SearchableAlbumList.tsx"
+import SearchableAlbumList from "./components/SearchableAlbumList.tsx"
 import { getAll } from "./db/get.ts"
 
 export default function ServerRoot({ search }: { search: string }) {

@@ -11,8 +11,7 @@ import "./utils/dev/live-reload.ts"
 // @ts-expect-error Property '__webpack_require__' does not exist on type 'Window & typeof globalThis'.
 window.__webpack_require__ = (id) => import(id)
 
-const root = createRoot(document.getElementById("root")!)
-root.render(
+createRoot(document.body).render(
   <StrictMode>
     <Router />
   </StrictMode>,

@@ -4,9 +4,7 @@ import {
   WebSocketClient,
   WebSocketServer,
 } from "https://deno.land/x/websocket@v0.1.4/mod.ts"
-import { build } from "./build.ts"
-import { router } from "./router.ts"
-import { src } from "./utils.ts"
+import { router } from "./router.tsx"
 
 Deno.env.set("NODE_ENV", "development")
 
@@ -44,13 +42,14 @@ function startSocketServer() {
 //  * and trigger a build + refresh on change.
 //  */
 async function startFileWatcher() {
-  for await (const _event of Deno.watchFs(toPathString(src))) {
-    await build()
+  const watcher = Deno.watchFs(
+    toPathString(new URL("../app/", import.meta.url)),
+  )
+  for await (const _event of watcher) {
     for (const socket of sockets) {
       socket.send("refresh")
     }
   }
 }
 
-await build()
 await Promise.all([startHttpServer(), startSocketServer(), startFileWatcher()])

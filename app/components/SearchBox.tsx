@@ -1,5 +1,8 @@
 "use client"
+import { nanoid } from "npm:nanoid"
 import { useTransition } from "react"
+
+console.log(nanoid())
 
 export default function SearchBox(props: { search: string }) {
   const [isPending, startTransition] = useTransition()
