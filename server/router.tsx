@@ -1,3 +1,4 @@
+import { typeByExtension } from "https://deno.land/std@0.183.0/media_types/type_by_extension.ts"
 import { toPathString } from "https://deno.land/std@0.184.0/fs/_util.ts"
 import * as esbuild from "https://deno.land/x/esbuild@v0.17.18/mod.js"
 import { Router } from "https://deno.land/x/oak@v12.2.0/mod.ts"
@@ -7,6 +8,7 @@ import { Document } from "../app/document.tsx"
 import { loadPageComponent } from "./load-page-component.ts"
 
 export const router = new Router()
+const appFolderUrl = new URL("../app/", import.meta.url)
 
 // Serve HTML homepage that fetches and renders the server component.
 router.get("/", (ctx) => {
@@ -21,10 +23,10 @@ router.get("/", (ctx) => {
 
 // Serve client-side components in the app folder
 router.get("/app/:file*", async (ctx) => {
-  const appFolder = new URL("../app/", import.meta.url)
+  const entryUrl = new URL(ctx.params.file!, appFolderUrl)
 
   const result = await esbuild.build({
-    entryPoints: [toPathString(new URL(ctx.params.file!, appFolder))],
+    entryPoints: [toPathString(entryUrl)],
     bundle: true,
     write: false,
     format: "esm",
@@ -33,8 +35,8 @@ router.get("/app/:file*", async (ctx) => {
     sourcemap: "inline",
   })
 
-  ctx.response.body = result.outputFiles[0].text
-  ctx.response.headers.set("Content-Type", "application/javascript")
+  ctx.response.body = result.outputFiles[0].contents
+  ctx.response.headers.set("Content-Type", getContentType(entryUrl.pathname))
 })
 
 router.get("/rsc", async (ctx) => {
@@ -65,3 +67,13 @@ router.get("/rsc", async (ctx) => {
   ctx.response.body = stream
   ctx.response.headers.set("Content-Type", "text/html")
 })
+
+function getContentType(path: string): string {
+  if (path.endsWith(".ts")) return "text/javascript"
+  if (path.endsWith(".tsx")) return "text/javascript"
+
+  const contentType = typeByExtension(path)
+  if (contentType) return contentType
+
+  return "text/plain"
+}
