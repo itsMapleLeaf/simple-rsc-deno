@@ -1,6 +1,5 @@
 import { toPathString } from "https://deno.land/std@0.184.0/fs/_util.ts"
 import * as path from "https://deno.land/std@0.184.0/path/mod.ts"
-import { toFileUrl } from "https://deno.land/std@0.184.0/path/win32.ts"
 import * as esbuild from "https://deno.land/x/esbuild@v0.17.18/mod.js"
 import { outdent } from "https://deno.land/x/outdent@v0.8.0/mod.ts"
 import * as swc from "https://deno.land/x/swc@0.2.1/mod.ts"
@@ -52,7 +51,7 @@ function clientComponentsResolver() {
           return
         }
 
-        const fileUrl = toFileUrl(args.path)
+        const fileUrl = path.toFileUrl(args.path)
         const projectRootUrl = new URL(import.meta.url)
 
         // get the path relative from the root
