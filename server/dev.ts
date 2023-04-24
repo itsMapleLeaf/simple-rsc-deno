@@ -13,7 +13,7 @@ Deno.env.set("NODE_ENV", "development")
 function startHttpServer() {
   const app = new Application().use(router.routes())
 
-  app.addEventListener("listen", async () => {
+  app.addEventListener("listen", () => {
     console.log(`⚛️ Future of React started on http://localhost:${port}`)
   })
 
