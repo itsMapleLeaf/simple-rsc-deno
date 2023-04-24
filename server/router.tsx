@@ -30,6 +30,7 @@ router.get("/app/:file*", async (ctx) => {
     format: "esm",
     packages: "external",
     jsx: "automatic",
+    sourcemap: "inline",
   })
 
   ctx.response.body = result.outputFiles[0].text

@@ -16,6 +16,7 @@ export async function loadPageComponent(url: URL) {
     jsx: "automatic",
     platform: "neutral",
     plugins: [clientComponentsPlugin()],
+    sourcemap: "inline",
   })
 
   const module = await import(
