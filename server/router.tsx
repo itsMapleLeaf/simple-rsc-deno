@@ -44,8 +44,6 @@ router.get("/rsc", async (ctx) => {
     new URL("../app/page.tsx", import.meta.url),
   )
 
-  console.log(componentMap)
-
   // 👀 This is where the magic happens!
   // Render the server component tree to a stream.
   // This renders your server components in real time and
