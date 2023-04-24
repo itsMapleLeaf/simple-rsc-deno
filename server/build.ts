@@ -18,6 +18,8 @@ const relativeOrAbsolutePathRegex = /^\.{0,2}\//
  * Build all server and client components with esbuild
  */
 export async function build() {
+  await Deno.remove(new URL("../dist/", import.meta.url), { recursive: true })
+
   const clientComponentMap: ClientComponentMap = {}
   const clientEntryPoints = new Set<string>()
 
